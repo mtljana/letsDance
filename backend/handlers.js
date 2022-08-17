@@ -28,7 +28,6 @@ const deleteComment = async (req, res) => {
       status: 200,
       data: result,
     });
-    console.log(result);
   } catch (err) {
     res.status(400).json({
       status: 400,
@@ -40,7 +39,6 @@ const deleteComment = async (req, res) => {
 const postUser = async (req, res) => {
   try {
     const client = await new MongoClient(MONGO_URI, options);
-    console.log("here", req.body);
     await client.connect();
     const db = client.db("lets-dance");
     const exitingUser = await db
@@ -93,7 +91,6 @@ const postComment = async (req, res) => {
   }
 };
 const getDanceClasses = async (req, res) => {
-  console.log(req.params);
   const { lat, lng } = req.params;
   try {
     const result = await axios.get(
@@ -135,7 +132,6 @@ const getLetsDanceReviews = async (req, res) => {
   const place_id = req.params.placeId;
   try {
     const client = await new MongoClient(MONGO_URI, options);
-    console.log("here", req.body);
     await client.connect();
     const db = client.db("lets-dance");
     const reviews = await db.collection("comments").find().toArray();
@@ -157,7 +153,6 @@ const getLiked = async (req, res) => {
   const user = req.params.user;
   try {
     const client = await new MongoClient(MONGO_URI, options);
-    console.log("here", req.body);
     await client.connect();
     const db = client.db("lets-dance");
     const likes = await db.collection("liked").find().toArray();
@@ -197,7 +192,6 @@ const getLocationLatLng = async (req, res) => {
 const LikeClass = async (req, res) => {
   try {
     const client = await new MongoClient(MONGO_URI, options);
-    console.log("here", req.body);
 
     const LikeObj = {
       _id: uuidv4(),

@@ -8,7 +8,6 @@ const HomePage = () => {
   const { danceclasses, setDanceClasses } = useContext(DanceClassContext);
 
   const [postalCode, setPostalCode] = useState("");
-  console.log(postalCode);
 
   const submitHandler = (e) => {
     e.preventDefault();
