@@ -32,7 +32,7 @@ const deleteComment = async (req, res) => {
   } catch (err) {
     res.status(400).json({
       status: 400,
-      message: "Error! getting the Reservation",
+      message: "Error! deleting the comments",
     });
   }
 };
@@ -68,7 +68,6 @@ const postUser = async (req, res) => {
 const postComment = async (req, res) => {
   try {
     const client = await new MongoClient(MONGO_URI, options);
-    console.log("here", req.body);
 
     const commentObj = {
       _id: uuidv4(),
@@ -110,7 +109,7 @@ const getDanceClasses = async (req, res) => {
   } catch (err) {
     res.status(400).json({
       status: 400,
-      message: "Error! getting the Reservation",
+      message: "Error! getting the dance classes",
     });
   }
 };
@@ -128,7 +127,7 @@ const getReviews = async (req, res) => {
   } catch (err) {
     res.status(400).json({
       status: 400,
-      message: "Error! getting the Reservation",
+      message: "Error! getting the reviews",
     });
   }
 };
@@ -150,7 +149,7 @@ const getLetsDanceReviews = async (req, res) => {
   } catch (err) {
     res.status(400).json({
       status: 400,
-      message: "Error! getting the Reservation",
+      message: "Error! getting the lets dance reviews",
     });
   }
 };
@@ -172,7 +171,7 @@ const getLiked = async (req, res) => {
   } catch (err) {
     res.status(400).json({
       status: 400,
-      message: "Error! getting the Reservation",
+      message: "Error! getting the liked classes",
     });
   }
 };
@@ -190,7 +189,7 @@ const getLocationLatLng = async (req, res) => {
   } catch (err) {
     res.status(400).json({
       status: 400,
-      message: "Error! getting the Reservation",
+      message: "Error! getting the location",
     });
   }
 };
