@@ -10,22 +10,27 @@ const LikeClass = ({ placeId }) => {
     user: isAuthenticated && user.email,
   };
   const clickHandler = () => {
-    fetch("/like-class", {
-      method: "POST",
-      body: JSON.stringify(LikeObj),
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === 200) {
-          window.alert("Liked!");
-        }
-      });
+    if (isAuthenticated)
+      fetch("/like-class", {
+        method: "POST",
+        body: JSON.stringify(LikeObj),
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.status === 200) {
+            window.alert("Liked!");
+          }
+        });
   };
-  return <StyledLikeButton onClick={clickHandler}>Like!</StyledLikeButton>;
+  return (
+    <StyledLikeButton onClick={clickHandler}>
+      {isAuthenticated ? "Like!" : "log in to like!"}
+    </StyledLikeButton>
+  );
 };
 
 const StyledLikeButton = styled.button`
