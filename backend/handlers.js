@@ -2,8 +2,12 @@
 
 // use this package to generate unique ids: https://www.npmjs.com/package/uuid
 const { v4: uuidv4 } = require("uuid");
-const { MongoClient } = require("mongodb");
 
+// use this data. Changes will persist until the server (backend) restarts.
+const axios = require("axios");
+
+//Connect to the DB
+const { MongoClient } = require("mongodb");
 require("dotenv").config();
 const { MONGO_URI } = process.env;
 
@@ -12,198 +16,218 @@ const options = {
   useUnifiedTopology: true,
 };
 
-// use this data. Changes will persist until the server (backend) restarts.
-// const { flights, reservations } = require("./data");
-
-// returns a list of all flights
-const getFlights = async (req, res) => {
-  const client = new MongoClient(MONGO_URI, options);
-  // connect to the client
-  await client.connect();
-
-  // connect to the database (db name is provided as an argument to the function)
-  const db = client.db("slingair");
-  const result = await db.collection("flights").find().toArray();
-
-  result
-    ? res.status(200).json({ status: 200, data: result })
-    : res.status(404).json({ status: 404, data: "Not Found" });
-
-  client.close();
-};
-
-// returns all the seats on a specified flight
-const getFlight = async (req, res) => {
-  const client = new MongoClient(MONGO_URI, options);
-  // connect to the client
-  const flight = req.params.flight;
-  await client.connect();
-
-  // connect to the database (db name is provided as an argument to the function)
-  const db = client.db("slingair");
-  const result = await db.collection("flights").findOne({ flight });
-  result
-    ? res.status(200).json({ status: 200, data: result })
-    : res.status(404).json({ status: 404, data: "Not Found" });
-
-  client.close();
-};
-
-// returns all reservations
-const getReservations = async (req, res) => {
-  const client = new MongoClient(MONGO_URI, options);
-  // connect to the client
-  await client.connect();
-
-  // connect to the database (db name is provided as an argument to the function)
-  const db = client.db("slingair");
-  const result = await db.collection("reservations").find().toArray();
-  result
-    ? res.status(200).json({ status: 200, data: result })
-    : res.status(404).json({ status: 404, data: "Not Found" });
-
-  client.close();
-};
-
-// returns a single reservation
-const getSingleReservation = async (req, res) => {
-  const id = req.params.reservation;
-  const client = new MongoClient(MONGO_URI, options);
-  // connect to the client
-  await client.connect();
-
-  // connect to the database (db name is provided as an argument to the function)
-  const db = client.db("slingair");
-  const result = await db.collection("reservations").findOne({ id });
-  result
-    ? res.status(200).json({ status: 200, data: result })
-    : res.status(404).json({ status: 404, data: "Not Found" });
-
-  client.close();
-};
-
-// creates a new reservation
-const addReservation = async (req, res) => {
-  console.log("req.body", req.body);
+const deleteComment = async (req, res) => {
   try {
-    const client = new MongoClient(MONGO_URI, options);
-    // connect to the client
-
+    const client = await new MongoClient(MONGO_URI, options);
     await client.connect();
+    const db = client.db("lets-dance");
+    const _id = req.params._id;
 
-    // connect to the database (db name is provided as an argument to the function)
-    const db = client.db("slingair");
-    const flight = await db
-      .collection("flights")
-      .findOne({ flight: req.body.flight });
-
-    flight.seats.forEach((seat) => {
-      if (seat.isAvailable && seat.id === req.body.seat) {
-        seat.isAvailable = false;
-      }
+    const result = await db.collection("comments").deleteOne({ _id });
+    res.status(200).json({
+      status: 200,
+      data: result,
     });
-
-    const newSeats = { $set: { seats: flight.seats } };
-    await db
-      .collection("flights")
-      .updateOne({ flight: req.body.flight }, newSeats);
-    await db.collection("reservations").insertOne(req.body);
-    res
-      .status(200)
-      .json({ status: 200, data: req.body, message: "reservation added" });
+    console.log(result);
   } catch (err) {
     res.status(400).json({
       status: 400,
-      data: req.body,
-      message: "could not add reservation",
+      message: "Error! getting the Reservation",
     });
   }
 };
 
-// updates an existing reservation
-const updateReservation = async (req, res) => {
+const postUser = async (req, res) => {
   try {
-    const { id, flight, seat, givenName, surname, email } = req.body;
-    const client = new MongoClient(MONGO_URI, options);
-    // connect to the client
-
+    const client = await new MongoClient(MONGO_URI, options);
+    console.log("here", req.body);
     await client.connect();
-
-    // connect to the database (db name is provided as an argument to the function)
-    const db = client.db("slingair");
-    const existingReservation = await db
-      .collection("reservations")
-      .findOne({ id });
-    const exitingFlight = await db.collection("flights").findOne({ flight });
-
-    exitingFlight.seats.forEach((seat) => {
-      if (seat.isAvailable && seat.id === req.body.seat) {
-        seat.isAvailable = false;
-      }
-      if (existingReservation.seat === seat.id) {
-        seat.isAvailable = true;
-      }
-    });
-    const newSeats = { $set: { seats: exitingFlight.seats } };
-    await db.collection("flights").updateOne({ flight }, newSeats);
-    db.collection("reservations").updateOne(
-      { id },
-      { $set: { flight, seat, givenName, surname, email } }
-    );
-    res.status(201).json({ status: 201, message: "reservation updated" });
-  } catch (err) {
-    res.status(400).json({ status: 400, message: "reservation not updated" });
-  }
-};
-
-// deletes a specified reservation
-const deleteReservation = async (req, res) => {
-  const id = req.params.reservation;
-  try {
-    const client = new MongoClient(MONGO_URI, options);
-    // connect to the client
-
-    await client.connect();
-
-    // connect to the database (db name is provided as an argument to the function)
-    const db = client.db("slingair");
-    const oldReservation = await db.collection("reservations").findOne({ id });
-    const exitingFlight = await db
-      .collection("flights")
-      .findOne({ flight: oldReservation.flight });
-
-    exitingFlight.seats.forEach((seat) => {
-      if (oldReservation.seat === seat.id) {
-        seat.isAvailable = true;
-      }
-    });
-
-    const newSeats = { $set: { seats: exitingFlight.seats } };
-    await db
-      .collection("flights")
-      .updateOne({ flight: oldReservation.flight }, newSeats);
-    const deleteReservation = await db
-      .collection("reservations")
-      .deleteOne({ id }, (err, result) => {
-        result
-          ? res
-              .status(200)
-              .json({ status: 200, message: "reservation deleted" })
-          : res
-              .status(400)
-              .json({ status: 400, message: "reservation not found" });
+    const db = client.db("lets-dance");
+    const exitingUser = await db
+      .collection("users")
+      .findOne({ email: req.body.email });
+    if (!exitingUser) {
+      await db.collection("users").insertOne(req.body);
+      return res.status(200).json({
+        status: 200,
+        message: "user is saved",
       });
+    } else {
+      return res.status(400).json({
+        status: 400,
+        message: "user already exits",
+      });
+    }
   } catch (err) {
-    res.status(400).json({ status: 400, message: "reservation not deleted" });
+    res.status(400).json({
+      status: 400,
+      message: "Error! saving the user",
+    });
+  }
+};
+const postComment = async (req, res) => {
+  try {
+    const client = await new MongoClient(MONGO_URI, options);
+    console.log("here", req.body);
+
+    const commentObj = {
+      _id: uuidv4(),
+      id: req.body.placeId,
+      user: req.body.user,
+      comment: req.body.comment,
+      name: req.body.name,
+      avatar: req.body.avatar,
+    };
+    await client.connect();
+    const db = client.db("lets-dance");
+
+    await db.collection("comments").insertOne(commentObj);
+    return res.status(200).json({
+      status: 200,
+      message: "user  comment is saved",
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 400,
+      message: "Error! saving the user comment",
+    });
+  }
+};
+const getDanceClasses = async (req, res) => {
+  console.log(req.params);
+  const { lat, lng } = req.params;
+  try {
+    const result = await axios.get(
+      lat && lng
+        ? `https://maps.googleapis.com/maps/api/place/textsearch/json?key=${process.env.GOOGLE_API_KEY}&query=danceclass&location=${lat},${lng}`
+        : `https://maps.googleapis.com/maps/api/place/textsearch/json?key=${process.env.GOOGLE_API_KEY}&query=danceclass`
+    );
+
+    res.status(200).json({
+      status: 200,
+      data: result.data.results,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 400,
+      message: "Error! getting the Reservation",
+    });
+  }
+};
+const getReviews = async (req, res) => {
+  const place_id = req.params.placeId;
+  try {
+    const response = await axios.get(`
+        https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&key=${process.env.GOOGLE_API_KEY}`);
+
+    const reviews = response.data.result.reviews;
+    res.status(200).json({
+      status: 200,
+      data: reviews,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 400,
+      message: "Error! getting the Reservation",
+    });
+  }
+};
+const getLetsDanceReviews = async (req, res) => {
+  const place_id = req.params.placeId;
+  try {
+    const client = await new MongoClient(MONGO_URI, options);
+    console.log("here", req.body);
+    await client.connect();
+    const db = client.db("lets-dance");
+    const reviews = await db.collection("comments").find().toArray();
+
+    const classReviews = reviews.filter((review) => review.id === place_id);
+
+    res.status(200).json({
+      status: 200,
+      data: classReviews,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 400,
+      message: "Error! getting the Reservation",
+    });
+  }
+};
+const getLiked = async (req, res) => {
+  const user = req.params.user;
+  try {
+    const client = await new MongoClient(MONGO_URI, options);
+    console.log("here", req.body);
+    await client.connect();
+    const db = client.db("lets-dance");
+    const likes = await db.collection("liked").find().toArray();
+
+    const likedClasses = likes.filter((like) => like.user === user);
+
+    res.status(200).json({
+      status: 200,
+      data: likedClasses,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 400,
+      message: "Error! getting the Reservation",
+    });
+  }
+};
+const getLocationLatLng = async (req, res) => {
+  const postalCode = req.params.code;
+  try {
+    const response = await axios.get(`
+    https://maps.googleapis.com/maps/api/geocode/json?address=${postalCode}&key=${process.env.GOOGLE_API_KEY}`);
+
+    const location = response.data.results[0].geometry.location;
+    res.status(200).json({
+      status: 200,
+      data: location,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 400,
+      message: "Error! getting the Reservation",
+    });
+  }
+};
+
+const LikeClass = async (req, res) => {
+  try {
+    const client = await new MongoClient(MONGO_URI, options);
+    console.log("here", req.body);
+
+    const LikeObj = {
+      _id: uuidv4(),
+      id: req.body.placeId,
+      user: req.body.user,
+    };
+    await client.connect();
+    const db = client.db("lets-dance");
+    await db.collection("liked").insertOne(LikeObj);
+    res.status(200).json({
+      status: 200,
+      message: "class is liked",
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 400,
+      message: "Error! like class",
+    });
   }
 };
 
 module.exports = {
-  getFlights,
-  getFlight,
-  getReservations,
-  addReservation,
-  getSingleReservation,
-  deleteReservation,
-  updateReservation,
+  deleteComment,
+  postUser,
+  getDanceClasses,
+  getReviews,
+  getLocationLatLng,
+  postComment,
+  getLetsDanceReviews,
+  LikeClass,
+  getLiked,
 };

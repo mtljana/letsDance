@@ -1,13 +1,20 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./components/App";
-import { FlightContextProvider } from "./FlightContext";
+import { Auth0Provider } from "@auth0/auth0-react";
+
+import { DanceClassProvider } from "./components/DanceClassContext";
 
 ReactDOM.render(
-  <React.StrictMode>
-    <FlightContextProvider>
+  <DanceClassProvider>
+    <Auth0Provider
+      domain={process.env.REACT_APP_domain}
+      clientId={process.env.REACT_APP_clientId}
+      redirectUri={window.location.origin}
+    >
       <App />
-    </FlightContextProvider>
-  </React.StrictMode>,
+    </Auth0Provider>
+  </DanceClassProvider>,
   document.getElementById("root")
 );
+

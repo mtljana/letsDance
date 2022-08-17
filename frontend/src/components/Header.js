@@ -1,25 +1,25 @@
+import React from "react";
 import styled from "styled-components";
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 
-import slingairLogo from "../assets/logo_text.png";
-import { Link } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
+import LoginButton from "./Login";
+import LogoutButton from "./LogOut";
 
 const Header = () => {
-  const reservation = JSON.parse(localStorage.getItem("reservation"));
+  const { user, isAuthenticated, isLoading } = useAuth0();
   return (
     <Wrapper>
-      <Link to="/">
-        <Logo>
-          <h1>Sling Airlines</h1>
-        </Logo>
-      </Link>
+      <StyledLink to="/">
+        <h1>Lets Dance!</h1>
+      </StyledLink>
+
       <Nav>
-        {/* TODO: only show link if the user has a reservation already */}
-        <>
-          {reservation ? (
-            <StyledNavLink to="/view-reservation">Reservation</StyledNavLink>
-          ) : null}
-        </>
+        {!isAuthenticated && <LoginButton />}
+        {isAuthenticated && <LogoutButton />}
+        {isAuthenticated && (
+          <StyledNavLink to="/profile">Profile</StyledNavLink>
+        )}
       </Nav>
     </Wrapper>
   );
@@ -28,24 +28,23 @@ const Header = () => {
 const Wrapper = styled.header`
   display: flex;
   justify-content: space-between;
-  background: var(--color-alabama-crimson);
+  align-items: center;
+  background: #171515;
   height: 110px;
   padding: var(--padding-page) 18px;
-`;
-const Logo = styled.div`
-  background-image: url(${slingairLogo});
-  background-repeat: no-repeat;
-  background-position: left center, right center;
-  background-size: contain;
-  overflow: hidden;
-  text-indent: -1000px;
-  height: 60px;
-  width: 550px;
 `;
 const Nav = styled.nav`
   display: flex;
   justify-content: flex-end;
   align-items: center;
+`;
+const StyledLink = styled(Link)`
+  text-decoration: none;
+  color: black;
+  cursor: pointer;
+  h1 {
+    color: white;
+  }
 `;
 const StyledNavLink = styled(NavLink)`
   background: var(--color-selective-yellow);
@@ -75,5 +74,4 @@ const StyledNavLink = styled(NavLink)`
     border-color: var(--color-selective-yellow);
   }
 `;
-
 export default Header;

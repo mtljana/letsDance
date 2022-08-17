@@ -1,24 +1,28 @@
+import React, { useContext, useState, useEffect } from "react";
 import styled from "styled-components";
 import { BrowserRouter, Switch, Route } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
-import SeatSelect from "./SeatSelect";
-import Confirmation from "./Confirmation";
-import GlobalStyles from "./GlobalStyles";
 
-import { useContext, useEffect } from "react";
-import { FlightContext } from "../FlightContext";
-import ViewReservation from "./ViewReservation";
+import GlobalStyles from "./GlobalStyles";
+import HomePage from "./HomePage";
+import DetailedClass from "./DetailedClass";
+import Profile from "./Profile";
+import { DanceClassContext } from "./DanceClassContext";
 
 const App = () => {
-  const { setFlights } = useContext(FlightContext);
+  const { setDanceClasses } = useContext(DanceClassContext);
+
   useEffect(() => {
-    fetch("/api/get-flights")
+    fetch(`/get-dance-classes/""/""`)
       .then((res) => res.json())
-      .then((data) => {
-        setFlights(data.data);
+      .then((data) => setDanceClasses(data.data))
+
+      .catch((err) => {
+        console.log("Error", err);
       });
   }, []);
+
   return (
     <BrowserRouter>
       <GlobalStyles />
@@ -26,14 +30,15 @@ const App = () => {
       <Main>
         <Switch>
           <Route exact path="/">
-            <SeatSelect />
+            <HomePage />
           </Route>
-          <Route exact path="/confirmed">
-            <Confirmation />
+          <Route path="/profile">
+            <Profile />
           </Route>
-          <Route exact path="/view-reservation">
-            <ViewReservation />
+          <Route path="/:placeId">
+            <DetailedClass />
           </Route>
+
           <Route path="">404: Oops!</Route>
         </Switch>
         <Footer />
@@ -43,10 +48,10 @@ const App = () => {
 };
 
 const Main = styled.div`
-  background: var(--color-orange);
+  background: linear-gradient(red, pink);
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 110px);
+  height: calc("100vh - 110px");
+  position: relative;
 `;
-
 export default App;
